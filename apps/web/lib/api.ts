@@ -645,7 +645,7 @@ export const api = {
 
   // Proxy Manager
   getProxyStatus: () =>
-    fetchJson<{ running: boolean; version: string; systemProxy: boolean; tunMode: boolean; configPath: string; subscriptionUrl?: string }>(`${API_BASE}/proxy/status`),
+    fetchJson<{ running: boolean; version: string; systemProxy: boolean; tunMode: boolean; configPath: string; subscriptionUrl?: string; activeProfile?: string }>(`${API_BASE}/proxy/status`),
 
   startProxy: () =>
     fetchJson<{ success: boolean }>(`${API_BASE}/proxy/start`, 'POST'),
@@ -656,8 +656,17 @@ export const api = {
   restartProxy: () =>
     fetchJson<{ success: boolean }>(`${API_BASE}/proxy/restart`, 'POST'),
 
-  updateProxyConfig: (subscriptionUrl: string, userRules?: string) =>
-    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/config`, 'POST', { subscriptionUrl, userRules }),
+  updateProxyConfig: (subscriptionUrl: string, name?: string) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/config`, 'POST', { subscriptionUrl, name }),
+
+  getProxyProfiles: () =>
+    fetchJson<{ profiles: Array<{ name: string; updatedAt: string }> }>(`${API_BASE}/proxy/profiles`),
+
+  switchProxyProfile: (name: string) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/profiles/switch`, 'POST', { name }),
+
+  deleteProxyProfile: (name: string) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/profiles/${name}`, 'DELETE'),
 
   setTunMode: (enable: boolean) =>
     fetchJson<{ success: boolean }>(`${API_BASE}/proxy/tun`, 'POST', { enable }),

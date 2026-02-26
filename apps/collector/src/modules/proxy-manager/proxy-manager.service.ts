@@ -12,6 +12,7 @@ const MIHOMO_VERSION = 'v1.18.1';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const BIN_DIR = path.join(DATA_DIR, 'bin');
 const CONFIG_PATH = path.join(DATA_DIR, 'config.yaml');
+const PROFILES_DIR = path.join(DATA_DIR, 'profiles');
 const LOG_PATH = path.join(DATA_DIR, 'mihomo.log');
 
 export interface ProxyStatus {
@@ -21,6 +22,13 @@ export interface ProxyStatus {
   tunMode: boolean;
   configPath: string;
   subscriptionUrl?: string;
+  activeProfile?: string;
+}
+
+export interface ProxyProfile {
+  name: string;
+  url?: string;
+  updatedAt: string;
 }
 
 export class ProxyManagerService {
@@ -28,12 +36,16 @@ export class ProxyManagerService {
   private db: StatsDatabase;
   private isSystemProxyEnabled = false;
   private subscriptionUrl: string | null = null;
+  private activeProfile: string | null = null;
   private logStream: fs.WriteStream | null = null;
 
   constructor(db: StatsDatabase) {
     this.db = db;
     if (!fs.existsSync(BIN_DIR)) {
       fs.mkdirSync(BIN_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(PROFILES_DIR)) {
+      fs.mkdirSync(PROFILES_DIR, { recursive: true });
     }
     this.loadState();
     this.ensureBackend();
@@ -49,6 +61,7 @@ export class ProxyManagerService {
         const data = JSON.parse(fs.readFileSync(this.getStatePath(), 'utf-8'));
         this.subscriptionUrl = data.subscriptionUrl;
         this.isSystemProxyEnabled = data.systemProxy || false;
+        this.activeProfile = data.activeProfile || null;
       }
     } catch (e) {
       console.error('[ProxyManager] Failed to load state:', e);
@@ -59,7 +72,8 @@ export class ProxyManagerService {
     try {
       fs.writeFileSync(this.getStatePath(), JSON.stringify({
         subscriptionUrl: this.subscriptionUrl,
-        systemProxy: this.isSystemProxyEnabled
+        systemProxy: this.isSystemProxyEnabled,
+        activeProfile: this.activeProfile,
       }, null, 2));
     } catch (e) {
       console.error('[ProxyManager] Failed to save state:', e);
@@ -100,13 +114,11 @@ export class ProxyManagerService {
     if (!res.ok) throw new Error(`Failed to download core: ${res.statusText}`);
 
     if (isZip) {
-      // For Windows zip, we download to a temp file and extract
       const tempZip = path.join(BIN_DIR, 'temp.zip');
       const fileStream = fs.createWriteStream(tempZip);
-      // @ts-expect-error - Readable.fromWeb matches pipeline requirements in newer Node but types might lag
+      // @ts-expect-error - Readable.fromWeb matches pipeline requirements
       await pipeline(Readable.fromWeb(res.body), fileStream);
 
-      // Extract zip (using powershell for simplicity on Windows)
       console.info('[ProxyManager] Extracting zip...');
       await new Promise<void>((resolve, reject) => {
         exec(`powershell -command "Expand-Archive -Path '${tempZip}' -DestinationPath '${BIN_DIR}' -Force"`, (err) => {
@@ -116,18 +128,15 @@ export class ProxyManagerService {
       });
       fs.unlinkSync(tempZip);
 
-      // Rename extracted file to standard name if needed
-      // The zip usually contains a file named like 'mihomo-windows-amd64.exe'
       const files = fs.readdirSync(BIN_DIR);
       const exe = files.find(f => f.startsWith('mihomo') && f.endsWith('.exe'));
       if (exe && exe !== 'mihomo.exe') {
         fs.renameSync(path.join(BIN_DIR, exe), binPath);
       }
     } else {
-      // For gz, we decompress directly
       const fileStream = fs.createWriteStream(binPath);
       const gunzip = createGunzip();
-      // @ts-expect-error - Readable.fromWeb matches pipeline requirements in newer Node but types might lag
+      // @ts-expect-error - Readable.fromWeb matches pipeline requirements
       await pipeline(Readable.fromWeb(res.body), gunzip, fileStream);
     }
 
@@ -223,58 +232,120 @@ export class ProxyManagerService {
     await this.start();
   }
 
-  async updateConfig(subscriptionUrl: string, _userRules: string = ''): Promise<void> {
-    console.info(`[ProxyManager] Updating config from ${subscriptionUrl}`);
+  // Helper to sanitize profile name to prevent path traversal
+  private validateProfileName(name: string): string {
+    if (!name || typeof name !== 'string') {
+        throw new Error('Invalid profile name');
+    }
+    // Allow alphanumeric, dash, underscore. Reject anything else including dots and slashes.
+    if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
+        throw new Error('Invalid profile name: only alphanumeric, dash, and underscore allowed');
+    }
+    return name;
+  }
+
+  // List all available profiles
+  listProfiles(): ProxyProfile[] {
+    try {
+      if (!fs.existsSync(PROFILES_DIR)) return [];
+      const files = fs.readdirSync(PROFILES_DIR).filter(f => f.endsWith('.yaml'));
+
+      return files.map(file => {
+        const filePath = path.join(PROFILES_DIR, file);
+        const stats = fs.statSync(filePath);
+        return {
+          name: file.replace('.yaml', ''),
+          updatedAt: stats.mtime.toISOString(),
+        };
+      });
+    } catch (e) {
+      console.error('[ProxyManager] Failed to list profiles:', e);
+      return [];
+    }
+  }
+
+  // Update existing profile or create new one from URL
+  async updateConfig(subscriptionUrl: string, name?: string): Promise<void> {
+    const profileName = name ? this.validateProfileName(name) : 'default';
+    const filename = `${profileName}.yaml`;
+    const profilePath = path.join(PROFILES_DIR, filename);
+
+    console.info(`[ProxyManager] Updating profile '${profileName}' from ${subscriptionUrl}`);
     const res = await fetch(subscriptionUrl);
     if (!res.ok) throw new Error(`Failed to fetch subscription: ${res.statusText}`);
 
     const configContent = await res.text();
 
-    // Parse to ensure validity and force external-controller
-    // Using yaml parse/stringify is safer
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let configObj: any;
     try {
       configObj = yaml.parse(configContent);
     } catch (e) {
-      // If parsing fails, fallback to raw manipulation (but risky)
-      console.warn('Failed to parse subscription YAML, falling back to string replacement', e);
-      configObj = null;
+      console.warn('Failed to parse subscription YAML', e);
+      // Even if parse fails, we might save it? But we need to inject controller
+      // Let's assume valid YAML for now or do string replacement
     }
 
     if (configObj) {
-      configObj['external-controller'] = '0.0.0.0:9090';
-      // Preserve existing TUN settings if we have local state, or respect subscription?
-      // For updateConfig, we usually overwrite with subscription,
-      // BUT we should probably try to preserve the TUN enable state if the user enabled it locally.
-      // However, usually subscription updates are "reset to remote".
-      // Let's check our current running config for TUN state.
-      const currentStatus = this.getStatus();
-      if (currentStatus.tunMode) {
-        if (!configObj.tun) configObj.tun = {};
-        configObj.tun.enable = true;
-        configObj.tun.stack = configObj.tun.stack || 'system';
-        configObj.tun['auto-route'] = true;
-        configObj.tun['auto-detect-interface'] = true;
-      }
-
-      fs.writeFileSync(CONFIG_PATH, yaml.stringify(configObj));
+      // Force external-controller to localhost
+      configObj['external-controller'] = '127.0.0.1:9090';
+      fs.writeFileSync(profilePath, yaml.stringify(configObj));
     } else {
-      // Fallback string manipulation
       let finalConfig = configContent;
       if (!finalConfig.includes('external-controller:')) {
-        finalConfig += '\nexternal-controller: 0.0.0.0:9090\n';
+        finalConfig += '\nexternal-controller: 127.0.0.1:9090\n';
       } else {
-         finalConfig = finalConfig.replace(/external-controller: .*/, 'external-controller: 0.0.0.0:9090');
+         finalConfig = finalConfig.replace(/external-controller: .*/, 'external-controller: 127.0.0.1:9090');
       }
-      fs.writeFileSync(CONFIG_PATH, finalConfig);
+      fs.writeFileSync(profilePath, finalConfig);
     }
 
-    this.subscriptionUrl = subscriptionUrl;
+    // If this is the active profile, apply it immediately
+    if (this.activeProfile === profileName) {
+      await this.switchProfile(profileName);
+    } else if (!this.activeProfile) {
+      // If no active profile, make this one active
+      await this.switchProfile(profileName);
+    }
+  }
+
+  // Switch active profile
+  async switchProfile(name: string): Promise<void> {
+    const profileName = this.validateProfileName(name);
+    const filename = `${profileName}.yaml`;
+    const profilePath = path.join(PROFILES_DIR, filename);
+
+    if (!fs.existsSync(profilePath)) {
+      throw new Error(`Profile '${profileName}' not found`);
+    }
+
+    console.info(`[ProxyManager] Switching to profile '${profileName}'`);
+
+    // Copy to config.yaml
+    fs.copyFileSync(profilePath, CONFIG_PATH);
+
+    this.activeProfile = profileName;
     this.saveState();
 
     if (this.process) {
       await this.restart();
+    }
+  }
+
+  async deleteProfile(name: string): Promise<void> {
+    const profileName = this.validateProfileName(name);
+    const filename = `${profileName}.yaml`;
+    const profilePath = path.join(PROFILES_DIR, filename);
+
+    if (fs.existsSync(profilePath)) {
+      fs.unlinkSync(profilePath);
+    }
+
+    if (this.activeProfile === profileName) {
+      this.activeProfile = null;
+      this.saveState();
+      // Don't stop process, just leave it running with old config or stop it?
+      // Maybe safer to not stop, user must pick another profile.
     }
   }
 
@@ -288,16 +359,13 @@ export class ProxyManagerService {
       const config = yaml.parse(content) || {};
 
       if (enabled) {
-        // Enable TUN
         if (!config.tun) config.tun = {};
         config.tun.enable = true;
-        // Set sensible defaults if missing
         if (!config.tun.stack) config.tun.stack = 'system';
         if (config.tun['auto-route'] === undefined) config.tun['auto-route'] = true;
         if (config.tun['auto-detect-interface'] === undefined) config.tun['auto-detect-interface'] = true;
         if (!config.tun['dns-hijack']) config.tun['dns-hijack'] = ['any:53'];
       } else {
-        // Disable TUN
         if (config.tun) {
           config.tun.enable = false;
         }
@@ -305,7 +373,19 @@ export class ProxyManagerService {
 
       fs.writeFileSync(CONFIG_PATH, yaml.stringify(config));
 
-      // Restart to apply
+      // Also update the active profile file if exists
+      if (this.activeProfile) {
+         try {
+           const profileName = this.validateProfileName(this.activeProfile);
+           const profilePath = path.join(PROFILES_DIR, `${profileName}.yaml`);
+           if (fs.existsSync(profilePath)) {
+              fs.writeFileSync(profilePath, yaml.stringify(config));
+           }
+         } catch (e) {
+            console.error('[ProxyManager] Failed to update active profile file:', e);
+         }
+      }
+
       if (this.process) {
         await this.restart();
       }
@@ -391,7 +471,8 @@ export class ProxyManagerService {
       systemProxy: this.isSystemProxyEnabled,
       tunMode,
       configPath: CONFIG_PATH,
-      subscriptionUrl: this.subscriptionUrl || undefined
+      subscriptionUrl: this.subscriptionUrl || undefined,
+      activeProfile: this.activeProfile || undefined,
     };
   }
 

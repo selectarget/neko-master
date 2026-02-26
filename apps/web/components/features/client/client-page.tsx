@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Play, Square, RotateCw, Download, FileText, Terminal, Settings2, ShieldAlert } from "lucide-react";
+import { Play, Square, RotateCw, FileText, Terminal, Settings2, ShieldAlert, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,14 +14,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export function ClientPage() {
   const [subUrl, setSubUrl] = useState("");
+  const [profileName, setProfileName] = useState("");
+  const [isAddProfileOpen, setIsAddProfileOpen] = useState(false);
 
   const { data: status, refetch: refetchStatus } = useQuery({
     queryKey: ["proxyStatus"],
     queryFn: () => api.getProxyStatus(),
     refetchInterval: 2000,
+  });
+
+  const { data: profilesData, refetch: refetchProfiles } = useQuery({
+    queryKey: ["proxyProfiles"],
+    queryFn: () => api.getProxyProfiles(),
   });
 
   const { data: logsData } = useQuery({
@@ -59,12 +67,35 @@ export function ClientPage() {
   });
 
   const updateConfigMutation = useMutation({
-    mutationFn: (url: string) => api.updateProxyConfig(url),
+    mutationFn: (data: { url: string, name?: string }) => api.updateProxyConfig(data.url, data.name),
     onSuccess: () => {
       toast.success("Configuration updated");
       refetchStatus();
+      refetchProfiles();
+      setIsAddProfileOpen(false);
+      setSubUrl("");
+      setProfileName("");
     },
     onError: (err) => toast.error("Failed to update config: " + err.message),
+  });
+
+  const switchProfileMutation = useMutation({
+    mutationFn: (name: string) => api.switchProxyProfile(name),
+    onSuccess: (_, name) => {
+      toast.success(`Switched to profile: ${name}`);
+      refetchStatus();
+    },
+    onError: (err) => toast.error("Failed to switch profile: " + err.message),
+  });
+
+  const deleteProfileMutation = useMutation({
+    mutationFn: (name: string) => api.deleteProxyProfile(name),
+    onSuccess: () => {
+      toast.success("Profile deleted");
+      refetchProfiles();
+      refetchStatus();
+    },
+    onError: (err) => toast.error("Failed to delete profile: " + err.message),
   });
 
   const tunMutation = useMutation({
@@ -76,15 +107,20 @@ export function ClientPage() {
     onError: (err) => toast.error("Failed to toggle TUN mode: " + err.message),
   });
 
-  const handleUpdateConfig = () => {
+  const handleAddProfile = () => {
     if (!subUrl) {
       toast.error("Please enter a subscription URL");
       return;
     }
-    updateConfigMutation.mutate(subUrl);
+    if (!profileName) {
+      toast.error("Please enter a profile name");
+      return;
+    }
+    updateConfigMutation.mutate({ url: subUrl, name: profileName });
   };
 
   const logs = logsData?.logs || [];
+  const profiles = profilesData?.profiles || [];
 
   return (
     <div className="space-y-6">
@@ -150,29 +186,91 @@ export function ClientPage() {
 
         <TabsContent value="config" className="mt-4 space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Subscription</CardTitle>
-              <CardDescription>Update your proxy configuration from a subscription URL.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Subscription URL</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="https://example.com/sub/..."
-                    value={subUrl}
-                    onChange={(e) => setSubUrl(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleUpdateConfig} disabled={updateConfigMutation.isPending}>
-                    <Download className="w-4 h-4 mr-2" /> Update
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Profiles</CardTitle>
+                <CardDescription>Manage your proxy configuration profiles.</CardDescription>
+              </div>
+              <Dialog open={isAddProfileOpen} onOpenChange={setIsAddProfileOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-2" /> Add Profile
                   </Button>
-                </div>
-                {status?.subscriptionUrl && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Current: {status.subscriptionUrl}
-                  </p>
-                )}
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Profile</DialogTitle>
+                    <DialogDescription>
+                      Enter a name and subscription URL for the new profile.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Profile Name</Label>
+                      <Input
+                        placeholder="e.g. My Provider"
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Subscription URL</Label>
+                      <Input
+                        placeholder="https://example.com/sub/..."
+                        value={subUrl}
+                        onChange={(e) => setSubUrl(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleAddProfile} disabled={updateConfigMutation.isPending}>
+                      {updateConfigMutation.isPending ? "Adding..." : "Add Profile"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                 {profiles.length === 0 && (
+                    <div className="col-span-full text-center text-muted-foreground py-8">
+                      No profiles found. Add one to get started.
+                    </div>
+                 )}
+                 {profiles.map((profile: { name: string; updatedAt: string }) => {
+                   const isActive = status?.activeProfile === profile.name;
+                   return (
+                     <div key={profile.name} className={cn("rounded-lg border p-4 flex flex-col gap-3", isActive && "border-primary bg-primary/5")}>
+                       <div className="flex items-start justify-between">
+                         <div className="flex items-center gap-2">
+                           <span className="font-medium">{profile.name}</span>
+                           {isActive && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                         </div>
+                         {!isActive && (
+                           <Button
+                             variant="ghost"
+                             size="icon"
+                             className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                             onClick={() => deleteProfileMutation.mutate(profile.name)}
+                           >
+                             <Trash2 className="w-4 h-4" />
+                           </Button>
+                         )}
+                       </div>
+                       <div className="text-xs text-muted-foreground">
+                         Updated: {new Date(profile.updatedAt).toLocaleDateString()}
+                       </div>
+                       <Button
+                         variant={isActive ? "secondary" : "outline"}
+                         className="w-full mt-auto"
+                         disabled={isActive || switchProfileMutation.isPending}
+                         onClick={() => switchProfileMutation.mutate(profile.name)}
+                       >
+                         {isActive ? "Active" : "Activate"}
+                       </Button>
+                     </div>
+                   );
+                 })}
               </div>
             </CardContent>
           </Card>

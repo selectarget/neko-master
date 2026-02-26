@@ -24,9 +24,27 @@ export async function proxyManagerController(fastify: FastifyInstance) {
   });
 
   fastify.post('/config', async (request) => {
-    const { subscriptionUrl, userRules } = request.body as { subscriptionUrl: string, userRules?: string };
+    const { subscriptionUrl, name } = request.body as { subscriptionUrl: string, name?: string };
     if (!subscriptionUrl) throw new Error('Subscription URL is required');
-    await service.updateConfig(subscriptionUrl, userRules);
+    await service.updateConfig(subscriptionUrl, name);
+    return { success: true };
+  });
+
+  fastify.get('/profiles', async () => {
+    return { profiles: service.listProfiles() };
+  });
+
+  fastify.post('/profiles/switch', async (request) => {
+    const { name } = request.body as { name: string };
+    if (!name) throw new Error('Profile name is required');
+    await service.switchProfile(name);
+    return { success: true };
+  });
+
+  fastify.delete('/profiles/:name', async (request) => {
+    const { name } = request.params as { name: string };
+    if (!name) throw new Error('Profile name is required');
+    await service.deleteProfile(name);
     return { success: true };
   });
 
