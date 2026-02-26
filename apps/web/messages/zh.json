@@ -5,6 +5,7 @@
   },
   "nav": {
     "overview": "概览",
+    "client": "客户端",
     "domains": "域名",
     "countries": "地区",
     "devices": "设备",

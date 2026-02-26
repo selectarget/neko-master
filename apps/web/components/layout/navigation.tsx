@@ -18,6 +18,7 @@ import {
   X,
   ShieldAlert,
   HeartPulse,
+  Box,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ const GITHUB_URL = `https://github.com/${GITHUB_REPO}`;
 
 const NAV_ITEMS = [
   { id: "overview", icon: LayoutDashboard },
+  { id: "client", icon: Box },
   { id: "rules", icon: Route },
   { id: "domains", icon: Globe },
   { id: "countries", icon: MapPin },
