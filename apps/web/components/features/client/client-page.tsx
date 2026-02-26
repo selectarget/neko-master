@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Play, Square, RotateCw, FileText, Terminal, Settings2, ShieldAlert, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { Play, Square, RotateCw, FileText, Terminal, Settings2, ShieldAlert, Plus, Trash2, CheckCircle2, RefreshCw, XCircle, Pause, PlayCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,11 +15,20 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useProxyLogs, type LogMessage } from "@/lib/hooks/use-proxy-logs";
 
 export function ClientPage() {
   const [subUrl, setSubUrl] = useState("");
   const [profileName, setProfileName] = useState("");
+  const [autoUpdate, setAutoUpdate] = useState(false);
+  const [updateInterval, setUpdateInterval] = useState("60");
   const [isAddProfileOpen, setIsAddProfileOpen] = useState(false);
+
+  // Log controls
+  const [logLevelFilter, setLogLevelFilter] = useState<string>("all");
+  const [isLogPaused, setIsLogPaused] = useState(false);
+  const logsContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: status, refetch: refetchStatus } = useQuery({
     queryKey: ["proxyStatus"],
@@ -32,11 +41,19 @@ export function ClientPage() {
     queryFn: () => api.getProxyProfiles(),
   });
 
-  const { data: logsData } = useQuery({
-    queryKey: ["proxyLogs"],
-    queryFn: () => api.getProxyLogs(100),
-    refetchInterval: status?.running ? 2000 : false,
-    enabled: !!status?.running
+  const isRunning = !!status?.running;
+  const { logs, clearLogs } = useProxyLogs(isRunning);
+
+  // Auto-scroll logs
+  useEffect(() => {
+    if (!isLogPaused && logsContainerRef.current) {
+      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
+    }
+  }, [logs, isLogPaused]);
+
+  const filteredLogs = logs.filter(log => {
+    if (logLevelFilter === "all") return true;
+    return log.level.toLowerCase() === logLevelFilter.toLowerCase();
   });
 
   const startMutation = useMutation({
@@ -67,7 +84,7 @@ export function ClientPage() {
   });
 
   const updateConfigMutation = useMutation({
-    mutationFn: (data: { url: string, name?: string }) => api.updateProxyConfig(data.url, data.name),
+    mutationFn: (data: { url: string, name?: string, autoUpdate?: boolean, updateInterval?: number }) => api.updateProxyConfig(data.url, data.name, data.autoUpdate, data.updateInterval),
     onSuccess: () => {
       toast.success("Configuration updated");
       refetchStatus();
@@ -75,6 +92,8 @@ export function ClientPage() {
       setIsAddProfileOpen(false);
       setSubUrl("");
       setProfileName("");
+      setAutoUpdate(false);
+      setUpdateInterval("60");
     },
     onError: (err) => toast.error("Failed to update config: " + err.message),
   });
@@ -116,10 +135,14 @@ export function ClientPage() {
       toast.error("Please enter a profile name");
       return;
     }
-    updateConfigMutation.mutate({ url: subUrl, name: profileName });
+    updateConfigMutation.mutate({
+      url: subUrl,
+      name: profileName,
+      autoUpdate,
+      updateInterval: parseInt(updateInterval)
+    });
   };
 
-  const logs = logsData?.logs || [];
   const profiles = profilesData?.profiles || [];
 
   return (
@@ -221,6 +244,32 @@ export function ClientPage() {
                         onChange={(e) => setSubUrl(e.target.value)}
                       />
                     </div>
+                    <div className="flex items-center justify-between space-x-2">
+                      <Label>Auto Update</Label>
+                      <Switch
+                        checked={autoUpdate}
+                        onCheckedChange={setAutoUpdate}
+                      />
+                    </div>
+                    {autoUpdate && (
+                      <div className="space-y-2">
+                        <Label>Update Interval</Label>
+                        <Select value={updateInterval} onValueChange={setUpdateInterval}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15">Every 15 minutes</SelectItem>
+                            <SelectItem value="30">Every 30 minutes</SelectItem>
+                            <SelectItem value="60">Every 1 hour</SelectItem>
+                            <SelectItem value="180">Every 3 hours</SelectItem>
+                            <SelectItem value="360">Every 6 hours</SelectItem>
+                            <SelectItem value="720">Every 12 hours</SelectItem>
+                            <SelectItem value="1440">Every 24 hours</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <Button onClick={handleAddProfile} disabled={updateConfigMutation.isPending}>
@@ -237,7 +286,7 @@ export function ClientPage() {
                       No profiles found. Add one to get started.
                     </div>
                  )}
-                 {profiles.map((profile: { name: string; updatedAt: string }) => {
+                 {profiles.map((profile: { name: string; updatedAt: string; autoUpdate?: boolean; updateInterval?: number }) => {
                    const isActive = status?.activeProfile === profile.name;
                    return (
                      <div key={profile.name} className={cn("rounded-lg border p-4 flex flex-col gap-3", isActive && "border-primary bg-primary/5")}>
@@ -246,19 +295,42 @@ export function ClientPage() {
                            <span className="font-medium">{profile.name}</span>
                            {isActive && <CheckCircle2 className="w-4 h-4 text-primary" />}
                          </div>
-                         {!isActive && (
+                         <div className="flex items-center gap-1">
                            <Button
-                             variant="ghost"
-                             size="icon"
-                             className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                             onClick={() => deleteProfileMutation.mutate(profile.name)}
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              title="Update Now"
+                              onClick={() => updateConfigMutation.mutate({
+                                url: profile.url || '',
+                                name: profile.name,
+                                autoUpdate: profile.autoUpdate,
+                                updateInterval: profile.updateInterval
+                              })}
+                              disabled={updateConfigMutation.isPending}
                            >
-                             <Trash2 className="w-4 h-4" />
+                             <RefreshCw className={cn("w-4 h-4", updateConfigMutation.isPending && "animate-spin")} />
                            </Button>
-                         )}
+                           {!isActive && (
+                             <Button
+                               variant="ghost"
+                               size="icon"
+                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                               onClick={() => deleteProfileMutation.mutate(profile.name)}
+                             >
+                               <Trash2 className="w-4 h-4" />
+                             </Button>
+                           )}
+                         </div>
                        </div>
-                       <div className="text-xs text-muted-foreground">
-                         Updated: {new Date(profile.updatedAt).toLocaleDateString()}
+                       <div className="text-xs text-muted-foreground space-y-1">
+                         <div>Updated: {new Date(profile.updatedAt).toLocaleDateString()}</div>
+                         {profile.autoUpdate && (
+                            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                               <RefreshCw className="w-3 h-3" />
+                               <span>Auto-update: {profile.updateInterval}m</span>
+                            </div>
+                         )}
                        </div>
                        <Button
                          variant={isActive ? "secondary" : "outline"}
@@ -311,12 +383,62 @@ export function ClientPage() {
 
         <TabsContent value="logs" className="mt-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between py-3">
               <CardTitle>Process Logs</CardTitle>
+              <div className="flex items-center gap-2">
+                <Select value={logLevelFilter} onValueChange={setLogLevelFilter}>
+                  <SelectTrigger className="w-[100px] h-8 text-xs">
+                    <SelectValue placeholder="Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="info">Info</SelectItem>
+                    <SelectItem value="warn">Warn</SelectItem>
+                    <SelectItem value="error">Error</SelectItem>
+                    <SelectItem value="debug">Debug</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setIsLogPaused(!isLogPaused)}
+                  title={isLogPaused ? "Resume auto-scroll" : "Pause auto-scroll"}
+                >
+                  {isLogPaused ? <PlayCircle className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:text-destructive"
+                  onClick={clearLogs}
+                  title="Clear logs"
+                >
+                  <XCircle className="w-4 h-4" />
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="bg-black/90 text-zinc-400 p-4 rounded-lg font-mono text-xs h-[400px] overflow-y-auto whitespace-pre-wrap">
-                {logs.length > 0 ? logs.join('\n') : "No logs available..."}
+            <CardContent className="p-0">
+              <div
+                ref={logsContainerRef}
+                className="bg-black/90 text-zinc-400 p-4 font-mono text-xs h-[500px] overflow-y-auto whitespace-pre-wrap flex flex-col gap-0.5"
+              >
+                {filteredLogs.length === 0 && (
+                  <div className="text-zinc-600 italic text-center py-10">No logs available...</div>
+                )}
+                {filteredLogs.map((log, i) => (
+                  <div key={i} className="flex gap-2 hover:bg-white/5 px-1 rounded">
+                    <span className="text-zinc-500 shrink-0">{new Date(log.time).toLocaleTimeString()}</span>
+                    <span className={cn(
+                      "font-bold shrink-0 w-12 uppercase",
+                      log.level === 'info' && "text-blue-400",
+                      log.level === 'warn' && "text-yellow-400",
+                      log.level === 'error' && "text-red-400",
+                      log.level === 'debug' && "text-purple-400",
+                    )}>{log.level}</span>
+                    <span className="break-all">{log.msg}</span>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

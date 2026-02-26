@@ -656,11 +656,11 @@ export const api = {
   restartProxy: () =>
     fetchJson<{ success: boolean }>(`${API_BASE}/proxy/restart`, 'POST'),
 
-  updateProxyConfig: (subscriptionUrl: string, name?: string) =>
-    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/config`, 'POST', { subscriptionUrl, name }),
+  updateProxyConfig: (subscriptionUrl: string, name?: string, autoUpdate?: boolean, updateInterval?: number) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/config`, 'POST', { subscriptionUrl, name, autoUpdate, updateInterval }),
 
   getProxyProfiles: () =>
-    fetchJson<{ profiles: Array<{ name: string; updatedAt: string }> }>(`${API_BASE}/proxy/profiles`),
+    fetchJson<{ profiles: Array<{ name: string; updatedAt: string; url?: string; autoUpdate?: boolean; updateInterval?: number }> }>(`${API_BASE}/proxy/profiles`),
 
   switchProxyProfile: (name: string) =>
     fetchJson<{ success: boolean }>(`${API_BASE}/proxy/profiles/switch`, 'POST', { name }),

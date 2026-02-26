@@ -24,6 +24,7 @@ import { StatsService, statsController } from '../stats/index.js';
 import { AuthService, authController } from '../auth/index.js';
 import { configController } from '../config/index.js';
 import { proxyManagerController } from '../proxy-manager/proxy-manager.controller.js';
+import { ProxyManagerService } from '../proxy-manager/proxy-manager.service.js';
 
 // Extend Fastify instance to include services
 declare module 'fastify' {
@@ -32,6 +33,7 @@ declare module 'fastify' {
     realtimeStore: RealtimeStore;
     backendService: BackendService;
     statsService: StatsService;
+    proxyManagerService?: ProxyManagerService;
     clearAgentRuntimeState?: (backendId?: number) => void;
     notifyBackendDataCleared?: (backendId: number) => void;
   }
@@ -44,6 +46,7 @@ export interface AppOptions {
   logger?: boolean;
   policySyncService?: SurgePolicySyncService;
   geoService?: GeoIPService;
+  proxyManagerService?: ProxyManagerService;
   autoListen?: boolean;
   onTrafficIngested?: (backendId: number) => void;
   onBackendDataCleared?: (backendId: number) => void;
@@ -281,6 +284,9 @@ export async function createApp(options: AppOptions) {
   app.decorate('db', db);
   app.decorate('realtimeStore', realtimeStore);
   app.decorate('clearAgentRuntimeState', clearAgentRuntimeState);
+  if (options.proxyManagerService) {
+    app.decorate('proxyManagerService', options.proxyManagerService);
+  }
   app.decorate(
     'notifyBackendDataCleared',
     (backendId: number) => onBackendDataCleared?.(backendId),
@@ -1323,6 +1329,7 @@ export class APIServer {
   private port: number;
   private policySyncService?: SurgePolicySyncService;
   private geoService?: GeoIPService;
+  private proxyManagerService?: ProxyManagerService;
   private onTrafficIngested?: (backendId: number) => void;
   private onBackendDataCleared?: (backendId: number) => void;
 
@@ -1332,6 +1339,7 @@ export class APIServer {
     realtimeStore: RealtimeStore,
     policySyncService?: SurgePolicySyncService,
     geoService?: GeoIPService,
+    proxyManagerService?: ProxyManagerService,
     onTrafficIngested?: (backendId: number) => void,
     onBackendDataCleared?: (backendId: number) => void,
   ) {
@@ -1340,6 +1348,7 @@ export class APIServer {
     this.realtimeStore = realtimeStore;
     this.policySyncService = policySyncService;
     this.geoService = geoService;
+    this.proxyManagerService = proxyManagerService;
     this.onTrafficIngested = onTrafficIngested;
     this.onBackendDataCleared = onBackendDataCleared;
   }
@@ -1351,6 +1360,7 @@ export class APIServer {
       realtimeStore: this.realtimeStore,
       policySyncService: this.policySyncService,
       geoService: this.geoService,
+      proxyManagerService: this.proxyManagerService,
       onTrafficIngested: this.onTrafficIngested,
       onBackendDataCleared: this.onBackendDataCleared,
       logger: false,

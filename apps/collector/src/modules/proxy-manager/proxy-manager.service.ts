@@ -6,6 +6,8 @@ import { pipeline } from 'stream/promises';
 import { createGunzip } from 'zlib';
 import { Readable } from 'stream';
 import yaml from 'yaml';
+import * as schedule from 'node-schedule';
+import EventEmitter from 'events';
 import type { StatsDatabase } from '../db/db.js';
 
 const MIHOMO_VERSION = 'v1.18.1';
@@ -29,17 +31,21 @@ export interface ProxyProfile {
   name: string;
   url?: string;
   updatedAt: string;
+  autoUpdate?: boolean;
+  updateInterval?: number; // minutes
 }
 
-export class ProxyManagerService {
+export class ProxyManagerService extends EventEmitter {
   private process: ChildProcess | null = null;
   private db: StatsDatabase;
   private isSystemProxyEnabled = false;
   private subscriptionUrl: string | null = null;
   private activeProfile: string | null = null;
   private logStream: fs.WriteStream | null = null;
+  private updateJobs: Map<string, schedule.Job> = new Map();
 
   constructor(db: StatsDatabase) {
+    super();
     this.db = db;
     if (!fs.existsSync(BIN_DIR)) {
       fs.mkdirSync(BIN_DIR, { recursive: true });
@@ -49,6 +55,7 @@ export class ProxyManagerService {
     }
     this.loadState();
     this.ensureBackend();
+    this.initializeUpdateJobs();
   }
 
   private getStatePath() {
@@ -173,6 +180,20 @@ export class ProxyManagerService {
     this.process.stdout?.pipe(this.logStream);
     this.process.stderr?.pipe(this.logStream);
 
+    this.process.stdout?.on('data', (data) => {
+      const lines = data.toString().split('\n');
+      for (const line of lines) {
+        if (line.trim()) this.emit('log', line);
+      }
+    });
+
+    this.process.stderr?.on('data', (data) => {
+      const lines = data.toString().split('\n');
+      for (const line of lines) {
+        if (line.trim()) this.emit('log', line);
+      }
+    });
+
     this.process.on('error', (err) => {
       console.error('[ProxyManager] Process error:', err);
       this.process = null;
@@ -246,6 +267,56 @@ export class ProxyManagerService {
     return name;
   }
 
+  private getProfileMetaPath(name: string): string {
+    return path.join(PROFILES_DIR, `${name}.meta.json`);
+  }
+
+  private saveProfileMeta(name: string, meta: { url?: string; autoUpdate?: boolean; updateInterval?: number }) {
+    try {
+      fs.writeFileSync(this.getProfileMetaPath(name), JSON.stringify(meta, null, 2));
+    } catch (e) {
+      console.error(`[ProxyManager] Failed to save profile meta for ${name}:`, e);
+    }
+  }
+
+  private getProfileMeta(name: string): { url?: string; autoUpdate?: boolean; updateInterval?: number } {
+    try {
+      if (fs.existsSync(this.getProfileMetaPath(name))) {
+        return JSON.parse(fs.readFileSync(this.getProfileMetaPath(name), 'utf-8'));
+      }
+    } catch {
+      // Ignore
+    }
+    return {};
+  }
+
+  private initializeUpdateJobs() {
+    const profiles = this.listProfiles();
+    for (const profile of profiles) {
+      if (profile.autoUpdate && profile.updateInterval && profile.url) {
+        this.scheduleUpdate(profile.name, profile.url, profile.updateInterval);
+      }
+    }
+  }
+
+  private scheduleUpdate(name: string, url: string, intervalMinutes: number) {
+    if (this.updateJobs.has(name)) {
+      this.updateJobs.get(name)?.cancel();
+    }
+
+    // Schedule job
+    const job = schedule.scheduleJob(`*/${intervalMinutes} * * * *`, async () => {
+      console.info(`[ProxyManager] Auto-updating profile '${name}'...`);
+      try {
+        await this.updateConfig(url, name, true); // true = isAutoUpdate
+      } catch (e) {
+        console.error(`[ProxyManager] Auto-update failed for '${name}':`, e);
+      }
+    });
+
+    this.updateJobs.set(name, job);
+  }
+
   // List all available profiles
   listProfiles(): ProxyProfile[] {
     try {
@@ -253,11 +324,17 @@ export class ProxyManagerService {
       const files = fs.readdirSync(PROFILES_DIR).filter(f => f.endsWith('.yaml'));
 
       return files.map(file => {
+        const name = file.replace('.yaml', '');
         const filePath = path.join(PROFILES_DIR, file);
         const stats = fs.statSync(filePath);
+        const meta = this.getProfileMeta(name);
+
         return {
-          name: file.replace('.yaml', ''),
+          name,
           updatedAt: stats.mtime.toISOString(),
+          url: meta.url,
+          autoUpdate: meta.autoUpdate,
+          updateInterval: meta.updateInterval,
         };
       });
     } catch (e) {
@@ -267,7 +344,7 @@ export class ProxyManagerService {
   }
 
   // Update existing profile or create new one from URL
-  async updateConfig(subscriptionUrl: string, name?: string): Promise<void> {
+  async updateConfig(subscriptionUrl: string, name?: string, isAutoUpdate = false, autoUpdateOptions?: { enabled: boolean, interval: number }): Promise<void> {
     const profileName = name ? this.validateProfileName(name) : 'default';
     const filename = `${profileName}.yaml`;
     const profilePath = path.join(PROFILES_DIR, filename);
@@ -284,8 +361,6 @@ export class ProxyManagerService {
       configObj = yaml.parse(configContent);
     } catch (e) {
       console.warn('Failed to parse subscription YAML', e);
-      // Even if parse fails, we might save it? But we need to inject controller
-      // Let's assume valid YAML for now or do string replacement
     }
 
     if (configObj) {
@@ -302,11 +377,33 @@ export class ProxyManagerService {
       fs.writeFileSync(profilePath, finalConfig);
     }
 
+    // Update metadata
+    const currentMeta = this.getProfileMeta(profileName);
+    const newMeta = {
+      ...currentMeta,
+      url: subscriptionUrl,
+    };
+
+    if (autoUpdateOptions) {
+      newMeta.autoUpdate = autoUpdateOptions.enabled;
+      newMeta.updateInterval = autoUpdateOptions.interval;
+    }
+
+    this.saveProfileMeta(profileName, newMeta);
+
+    // Reschedule if needed
+    if (newMeta.autoUpdate && newMeta.updateInterval && !isAutoUpdate) {
+       this.scheduleUpdate(profileName, subscriptionUrl, newMeta.updateInterval);
+    } else if (!newMeta.autoUpdate && this.updateJobs.has(profileName)) {
+       this.updateJobs.get(profileName)?.cancel();
+       this.updateJobs.delete(profileName);
+    }
+
     // If this is the active profile, apply it immediately
     if (this.activeProfile === profileName) {
       await this.switchProfile(profileName);
-    } else if (!this.activeProfile) {
-      // If no active profile, make this one active
+    } else if (!this.activeProfile && !isAutoUpdate) {
+      // If no active profile, make this one active (only if manual update)
       await this.switchProfile(profileName);
     }
   }
@@ -338,16 +435,23 @@ export class ProxyManagerService {
     const profileName = this.validateProfileName(name);
     const filename = `${profileName}.yaml`;
     const profilePath = path.join(PROFILES_DIR, filename);
+    const metaPath = this.getProfileMetaPath(profileName);
 
     if (fs.existsSync(profilePath)) {
       fs.unlinkSync(profilePath);
+    }
+    if (fs.existsSync(metaPath)) {
+      fs.unlinkSync(metaPath);
+    }
+
+    if (this.updateJobs.has(profileName)) {
+      this.updateJobs.get(profileName)?.cancel();
+      this.updateJobs.delete(profileName);
     }
 
     if (this.activeProfile === profileName) {
       this.activeProfile = null;
       this.saveState();
-      // Don't stop process, just leave it running with old config or stop it?
-      // Maybe safer to not stop, user must pick another profile.
     }
   }
 

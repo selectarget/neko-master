@@ -2,7 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { ProxyManagerService } from './proxy-manager.service.js';
 
 export async function proxyManagerController(fastify: FastifyInstance) {
-  const service = new ProxyManagerService(fastify.db);
+  // Use the shared service instance if available, otherwise create a new one (fallback)
+  const service = fastify.proxyManagerService || new ProxyManagerService(fastify.db);
 
   fastify.get('/status', async () => {
     return service.getStatus();
@@ -24,9 +25,20 @@ export async function proxyManagerController(fastify: FastifyInstance) {
   });
 
   fastify.post('/config', async (request) => {
-    const { subscriptionUrl, name } = request.body as { subscriptionUrl: string, name?: string };
+    const { subscriptionUrl, name, autoUpdate, updateInterval } = request.body as {
+      subscriptionUrl: string,
+      name?: string,
+      autoUpdate?: boolean,
+      updateInterval?: number
+    };
     if (!subscriptionUrl) throw new Error('Subscription URL is required');
-    await service.updateConfig(subscriptionUrl, name);
+
+    let autoUpdateOptions;
+    if (autoUpdate !== undefined && updateInterval !== undefined) {
+      autoUpdateOptions = { enabled: autoUpdate, interval: updateInterval };
+    }
+
+    await service.updateConfig(subscriptionUrl, name, false, autoUpdateOptions);
     return { success: true };
   });
 

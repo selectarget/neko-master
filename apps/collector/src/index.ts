@@ -16,10 +16,12 @@ import { StatsDatabase, BackendConfig } from './modules/db/db.js';
 import { createCollector, GatewayCollector } from './modules/collector/gateway.collector.js';
 import { createSurgeCollector, SurgeCollector } from './modules/collector/surge.collector.js';
 import { StatsWebSocketServer } from './modules/websocket/websocket.server.js';
+import { ProxyLogsWebSocketServer } from './modules/websocket/proxy-logs.server.js';
 import { realtimeStore } from './modules/realtime/realtime.store.js';
 import { SurgePolicySyncService } from './modules/surge/surge-policy-sync.js';
 
 let wsServer: StatsWebSocketServer;
+let logsWsServer: ProxyLogsWebSocketServer;
 
 import { APIServer } from './modules/app/app.js';
 import { GeoIPService } from './modules/geo/geo.service.js';
@@ -31,6 +33,7 @@ import {
   loadClickHouseConfig,
 } from './modules/clickhouse/clickhouse.config.js';
 import { ClickHouseCompareService } from './modules/clickhouse/clickhouse.compare.js';
+import { ProxyManagerService } from './modules/proxy-manager/proxy-manager.service.js';
 
 const COLLECTOR_WS_PORT = parseInt(process.env.COLLECTOR_WS_PORT || '3002');
 const API_PORT = parseInt(process.env.API_PORT || '3001');
@@ -44,6 +47,7 @@ let apiServer: APIServer;
 let geoService: GeoIPService;
 let policySyncService: SurgePolicySyncService;
 let clickHouseCompareService: ClickHouseCompareService;
+let proxyManagerService: ProxyManagerService;
 
 // Track last known backend configs to detect changes
 let lastBackendConfigs: Map<number, BackendConfig> = new Map();
@@ -78,6 +82,9 @@ async function main() {
   // Initialize policy sync service
   policySyncService = new SurgePolicySyncService(db);
 
+  // Initialize Proxy Manager Service (Singleton)
+  proxyManagerService = new ProxyManagerService(db);
+
   // Initialize API server
   console.log('[Main] Starting API server on port', API_PORT);
   apiServer = new APIServer(
@@ -86,6 +93,7 @@ async function main() {
     realtimeStore,
     policySyncService,
     geoService,
+    proxyManagerService,
     (backendId: number) => {
       wsServer.broadcastStats(backendId);
     },
@@ -99,6 +107,11 @@ async function main() {
       wsServer.broadcastStats(backendId, true);
     },
   );
+
+  // Initialize Proxy Logs WebSocket Server (Port 3003)
+  const LOGS_WS_PORT = 3003;
+  logsWsServer = new ProxyLogsWebSocketServer(LOGS_WS_PORT, proxyManagerService);
+
   apiServer.start();
 
   // Start backend management loop
@@ -286,6 +299,7 @@ function shutdown() {
 
   // Stop servers
   wsServer?.stop();
+  logsWsServer?.stop();
   apiServer?.stop();
   clickHouseCompareService?.stop();
   geoService?.destroy();
