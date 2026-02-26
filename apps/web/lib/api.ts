@@ -17,6 +17,7 @@ type RuntimeConfig = {
 
 function getRuntimeConfig(): RuntimeConfig | undefined {
   if (typeof window === "undefined") return undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (window as any).__RUNTIME_CONFIG__ as RuntimeConfig | undefined;
 }
 
@@ -641,6 +642,25 @@ export const api = {
 
   updateToken: (currentToken: string, newToken: string) =>
     fetchJson<{ success: boolean; message: string }>(`${API_BASE}/auth/token`, 'PUT', { currentToken, newToken }),
+
+  // Proxy Manager
+  getProxyStatus: () =>
+    fetchJson<{ running: boolean; version: string; systemProxy: boolean; tunMode: boolean; configPath: string; subscriptionUrl?: string }>(`${API_BASE}/proxy/status`),
+
+  startProxy: () =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/start`, 'POST'),
+
+  stopProxy: () =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/stop`, 'POST'),
+
+  restartProxy: () =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/restart`, 'POST'),
+
+  updateProxyConfig: (subscriptionUrl: string, userRules?: string) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/config`, 'POST', { subscriptionUrl, userRules }),
+
+  getProxyLogs: (lines?: number) =>
+    fetchJson<{ logs: string[] }>(buildUrl(`${API_BASE}/proxy/logs`, { lines })),
 };
 
 // Helper functions for time range

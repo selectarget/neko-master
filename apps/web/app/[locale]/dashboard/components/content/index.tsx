@@ -13,6 +13,7 @@ import { InteractiveProxyStats } from "@/components/features/proxies";
 import { InteractiveDeviceStats } from "@/components/features/devices";
 import { InteractiveRuleStats } from "@/components/features/rules";
 import { HealthContent } from "@/components/features/health";
+import { ClientPage } from "@/components/features/client";
 import { WorldTrafficMap, CountryTrafficList } from "@/components/features/countries";
 import { DomainsTable, IPsTable } from "@/components/features/stats/table";
 import { Button } from "@/components/ui/button";
@@ -388,6 +389,8 @@ export function Content({
         return <NetworkContent />;
       case "health":
         return <HealthContent timeRange={timeRange} />;
+      case "client":
+        return <ClientPage />;
       default:
         return (
           <OverviewContent

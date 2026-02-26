@@ -5,6 +5,7 @@
   },
   "nav": {
     "overview": "Overview",
+    "client": "Client",
     "domains": "Domains",
     "countries": "Regions",
     "devices": "Devices",
