@@ -121,7 +121,9 @@ export class ProxyManagerService {
 
       console.info('[ProxyManager] Extracting zip...');
       await new Promise<void>((resolve, reject) => {
-        exec(`powershell -command "Expand-Archive -Path '${tempZip}' -DestinationPath '${BIN_DIR}' -Force"`, (err) => {
+        const safeTempZip = tempZip.replace(/'/g, "''");
+        const safeBinDir = BIN_DIR.replace(/'/g, "''");
+        exec(`powershell -command "Expand-Archive -Path '${safeTempZip}' -DestinationPath '${safeBinDir}' -Force"`, (err) => {
           if (err) reject(err);
           else resolve();
         });

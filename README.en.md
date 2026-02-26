@@ -68,6 +68,7 @@ It is a lightweight analytics dashboard designed for modern gateway environments
 - [✨ Features](#-features)
 - [🚀 Quick Start](#-quick-start)
 - [🤖 Agent Deployment](#-agent-deployment)
+- [💻 Web Proxy Client](#-web-proxy-client)
 - [📖 First Use](#-first-use)
 - [🔧 Port Conflict Resolution](#-port-conflict-resolution)
 - [🐳 Docker Configuration](#-docker-configuration)
@@ -292,6 +293,31 @@ nekoagent upgrade            # global upgrade (CLI + binary)
 - [Configuration](./docs/agent/config.en.md): full flag and env variable reference
 - [Release Flow](./docs/agent/release.en.md): versioning and compatibility policy
 - [Troubleshooting](./docs/agent/troubleshooting.en.md): common errors and fixes
+
+## 💻 Web Proxy Client
+
+Neko Master now integrates the **Mihomo (Clash Meta)** core, allowing it to function directly as a **Web-based Proxy Client** (similar to Clash Verge Rev).
+
+### Features
+
+*   **Integrated Core Management**: Automatically downloads and manages the Mihomo core.
+*   **Profile Management**: Add, update, and delete proxy profiles via subscription URLs.
+*   **Quick Switch**: Seamlessly switch between multiple profiles.
+*   **System Proxy (Experimental)**: One-click system proxy toggle for Windows/macOS (requires host environment).
+*   **TUN Mode**: Supports TUN mode for system-wide routing (requires admin privileges).
+
+### Usage
+
+1.  Launch Neko Master.
+2.  Navigate to the **"Client"** menu in the sidebar.
+3.  Go to the **"Configuration"** tab.
+4.  Click **"Add Profile"**, enter a name and the subscription URL.
+5.  After adding, click **"Activate"** to switch to the profile.
+6.  Click the **"Start"** button at the top to run the proxy core.
+
+> **Note**:
+> *   **Docker Environment**: System Proxy functionality does not affect the host when running in Docker. TUN mode requires `NET_ADMIN` capability for the container.
+> *   **Source/Local Run**: Full system proxy control is supported when running directly on Windows/macOS.
 
 ## 📖 First Use
 
