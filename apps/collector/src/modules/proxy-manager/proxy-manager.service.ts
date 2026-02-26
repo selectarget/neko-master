@@ -5,6 +5,7 @@ import { spawn, type ChildProcess, exec } from 'child_process';
 import { pipeline } from 'stream/promises';
 import { createGunzip } from 'zlib';
 import { Readable } from 'stream';
+import yaml from 'yaml';
 import type { StatsDatabase } from '../db/db.js';
 
 const MIHOMO_VERSION = 'v1.18.1';
@@ -34,8 +35,6 @@ export class ProxyManagerService {
     if (!fs.existsSync(BIN_DIR)) {
       fs.mkdirSync(BIN_DIR, { recursive: true });
     }
-    // Load persisted state if any (could be in DB or a separate json file)
-    // For now, we'll just check if process is running on start or rely on manual start
     this.loadState();
     this.ensureBackend();
   }
@@ -153,7 +152,6 @@ export class ProxyManagerService {
     console.info('[ProxyManager] Starting mihomo...');
     const binPath = this.getBinaryPath();
 
-    // Ensure log file exists
     this.logStream = fs.createWriteStream(LOG_PATH, { flags: 'a' });
 
     this.process = spawn(binPath, ['-d', DATA_DIR, '-f', CONFIG_PATH], {
@@ -177,7 +175,6 @@ export class ProxyManagerService {
       }
     });
 
-    // Wait a bit to ensure it started
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     if (this.isSystemProxyEnabled) {
@@ -202,7 +199,6 @@ export class ProxyManagerService {
           token: ''
         });
       } else {
-        // Ensure it is enabled
         if (!exists.enabled || !exists.listening) {
           console.info('[ProxyManager] Enabling local backend...');
           this.db.updateBackend(exists.id, { enabled: true, listening: true });
@@ -234,59 +230,107 @@ export class ProxyManagerService {
 
     const configContent = await res.text();
 
-    // Simple merge: append user rules if needed
-    // In a real app, we might want to parse YAML and merge properly
-    // For now, we just save the subscription content as config.yaml
-    // We force external-controller to 9090 to ensure we can connect
-
-    let finalConfig = configContent;
-
-    // Force external-controller
-    if (!finalConfig.includes('external-controller:')) {
-      finalConfig += '\nexternal-controller: 0.0.0.0:9090\n';
-    } else {
-       // Replace existing port if needed, or just warn user
-       // Regex replace to ensure it's 9090?
-       finalConfig = finalConfig.replace(/external-controller: .*/, 'external-controller: 0.0.0.0:9090');
+    // Parse to ensure validity and force external-controller
+    // Using yaml parse/stringify is safer
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let configObj: any;
+    try {
+      configObj = yaml.parse(configContent);
+    } catch (e) {
+      // If parsing fails, fallback to raw manipulation (but risky)
+      console.warn('Failed to parse subscription YAML, falling back to string replacement', e);
+      configObj = null;
     }
 
-    // Force external-ui? Not needed as we use Neko Master
+    if (configObj) {
+      configObj['external-controller'] = '0.0.0.0:9090';
+      // Preserve existing TUN settings if we have local state, or respect subscription?
+      // For updateConfig, we usually overwrite with subscription,
+      // BUT we should probably try to preserve the TUN enable state if the user enabled it locally.
+      // However, usually subscription updates are "reset to remote".
+      // Let's check our current running config for TUN state.
+      const currentStatus = this.getStatus();
+      if (currentStatus.tunMode) {
+        if (!configObj.tun) configObj.tun = {};
+        configObj.tun.enable = true;
+        configObj.tun.stack = configObj.tun.stack || 'system';
+        configObj.tun['auto-route'] = true;
+        configObj.tun['auto-detect-interface'] = true;
+      }
 
-    // Save
-    fs.writeFileSync(CONFIG_PATH, finalConfig);
+      fs.writeFileSync(CONFIG_PATH, yaml.stringify(configObj));
+    } else {
+      // Fallback string manipulation
+      let finalConfig = configContent;
+      if (!finalConfig.includes('external-controller:')) {
+        finalConfig += '\nexternal-controller: 0.0.0.0:9090\n';
+      } else {
+         finalConfig = finalConfig.replace(/external-controller: .*/, 'external-controller: 0.0.0.0:9090');
+      }
+      fs.writeFileSync(CONFIG_PATH, finalConfig);
+    }
+
     this.subscriptionUrl = subscriptionUrl;
     this.saveState();
 
-    // If running, restart to apply
     if (this.process) {
       await this.restart();
     }
   }
 
+  async setTunMode(enabled: boolean): Promise<void> {
+    if (!fs.existsSync(CONFIG_PATH)) {
+      throw new Error('Config file not found');
+    }
+
+    try {
+      const content = fs.readFileSync(CONFIG_PATH, 'utf-8');
+      const config = yaml.parse(content) || {};
+
+      if (enabled) {
+        // Enable TUN
+        if (!config.tun) config.tun = {};
+        config.tun.enable = true;
+        // Set sensible defaults if missing
+        if (!config.tun.stack) config.tun.stack = 'system';
+        if (config.tun['auto-route'] === undefined) config.tun['auto-route'] = true;
+        if (config.tun['auto-detect-interface'] === undefined) config.tun['auto-detect-interface'] = true;
+        if (!config.tun['dns-hijack']) config.tun['dns-hijack'] = ['any:53'];
+      } else {
+        // Disable TUN
+        if (config.tun) {
+          config.tun.enable = false;
+        }
+      }
+
+      fs.writeFileSync(CONFIG_PATH, yaml.stringify(config));
+
+      // Restart to apply
+      if (this.process) {
+        await this.restart();
+      }
+    } catch (e) {
+      console.error('[ProxyManager] Failed to toggle TUN mode:', e);
+      throw new Error('Failed to update configuration');
+    }
+  }
+
   async enableSystemProxy(): Promise<void> {
     if (os.platform() === 'win32') {
-      // Enable system proxy on Windows
-      // Using registry or netsh. Registry is more common for per-user.
-      // Set ProxyEnable = 1, ProxyServer = 127.0.0.1:7890
-      const port = 7890; // Default mixed port
+      const port = 7890;
       console.info('[ProxyManager] Enabling system proxy (Windows)...');
       await this.execCommand(`reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyEnable /t REG_DWORD /d 1 /f`);
       await this.execCommand(`reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyServer /t REG_SZ /d "127.0.0.1:${port}" /f`);
     } else if (os.platform() === 'darwin') {
-      // Enable system proxy on macOS
-      // networksetup -setwebproxy "Wi-Fi" 127.0.0.1 7890
-      // networksetup -setsecurewebproxy "Wi-Fi" 127.0.0.1 7890
       const port = 7890;
       console.info('[ProxyManager] Enabling system proxy (macOS)...');
-      // We need to detect the active network service. Defaulting to Wi-Fi for now.
-      // A robust solution would iterate services.
       const services = ['Wi-Fi', 'Ethernet'];
       for (const service of services) {
         try {
           await this.execCommand(`networksetup -setwebproxy "${service}" 127.0.0.1 ${port}`);
           await this.execCommand(`networksetup -setsecurewebproxy "${service}" 127.0.0.1 ${port}`);
         } catch {
-          // Ignore if service not found
+          // Ignore
         }
       }
     }
@@ -328,9 +372,13 @@ export class ProxyManagerService {
     try {
       if (fs.existsSync(CONFIG_PATH)) {
         const content = fs.readFileSync(CONFIG_PATH, 'utf-8');
-        // Simple check for tun enable
-        if (content.includes('tun:') && content.includes('enable: true')) {
-          tunMode = true;
+        try {
+          const config = yaml.parse(content);
+          if (config?.tun?.enable) {
+            tunMode = true;
+          }
+        } catch {
+          // Fallback regex if parsing fails? Or just ignore
         }
       }
     } catch {
@@ -349,8 +397,6 @@ export class ProxyManagerService {
 
   getLogs(lines: number = 100): string[] {
     if (!fs.existsSync(LOG_PATH)) return [];
-    // Simple implementation: read whole file and take last N lines
-    // For production, use a proper log rotator or stream reader
     try {
       const content = fs.readFileSync(LOG_PATH, 'utf-8');
       return content.split('\n').slice(-lines);

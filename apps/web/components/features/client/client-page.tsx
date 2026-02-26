@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Play, Square, RotateCw, Download, FileText, Terminal, Settings2 } from "lucide-react";
+import { Play, Square, RotateCw, Download, FileText, Terminal, Settings2, ShieldAlert } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function ClientPage() {
   const [subUrl, setSubUrl] = useState("");
@@ -63,6 +65,15 @@ export function ClientPage() {
       refetchStatus();
     },
     onError: (err) => toast.error("Failed to update config: " + err.message),
+  });
+
+  const tunMutation = useMutation({
+    mutationFn: (enable: boolean) => api.setTunMode(enable),
+    onSuccess: (_, enable) => {
+      toast.success(enable ? "TUN mode enabled" : "TUN mode disabled");
+      refetchStatus();
+    },
+    onError: (err) => toast.error("Failed to toggle TUN mode: " + err.message),
   });
 
   const handleUpdateConfig = () => {
@@ -137,7 +148,7 @@ export function ClientPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="config" className="mt-4">
+        <TabsContent value="config" className="mt-4 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Subscription</CardTitle>
@@ -162,6 +173,39 @@ export function ClientPage() {
                     Current: {status.subscriptionUrl}
                   </p>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-amber-500" />
+                Advanced Settings
+              </CardTitle>
+              <CardDescription>Experimental features for advanced users.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert className="bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400">
+                 <ShieldAlert className="w-4 h-4" />
+                 <AlertTitle>Warning</AlertTitle>
+                 <AlertDescription>
+                   Enabling TUN mode requires administrator privileges. Your network connection might be briefly interrupted.
+                 </AlertDescription>
+              </Alert>
+
+              <div className="flex items-center justify-between rounded-lg border p-4 shadow-sm">
+                <div className="space-y-0.5">
+                  <Label className="text-base">TUN Mode</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Enable system-wide proxy via virtual network interface
+                  </p>
+                </div>
+                <Switch
+                  checked={status?.tunMode}
+                  onCheckedChange={(c) => tunMutation.mutate(c)}
+                  disabled={tunMutation.isPending}
+                />
               </div>
             </CardContent>
           </Card>

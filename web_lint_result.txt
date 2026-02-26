@@ -1,0 +1,1423 @@
+
+> @neko-master/web@1.0.1 lint /app/apps/web
+> eslint
+
+
+/app/apps/web/app/[locale]/dashboard/components/content/index.tsx
+  331:3  warning  'isTransitioning' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/app/[locale]/dashboard/components/header/index.tsx
+    3:17  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+    3:28  warning  'useState' is defined but never used   @typescript-eslint/no-unused-vars
+  107:3   warning  'backends' is defined but never used   @typescript-eslint/no-unused-vars
+  126:3   warning  'activeTab' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/app/[locale]/dashboard/hooks/use-dashboard.ts
+  164:9  warning  The 'backends' logical expression could make the dependencies of useMemo Hook (at line 167) change on every render. To fix this, wrap the initialization of 'backends' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  164:9  warning  The 'backends' logical expression could make the dependencies of useMemo Hook (at line 171) change on every render. To fix this, wrap the initialization of 'backends' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  376:5  warning  React Hook useCallback has a missing dependency: 'backendsQuery'. Either include it or remove the dependency array                                                                                react-hooks/exhaustive-deps
+  382:6  warning  React Hook useCallback has a missing dependency: 'backendsQuery'. Either include it or remove the dependency array                                                                                react-hooks/exhaustive-deps
+  404:6  warning  React Hook useEffect has missing dependencies: 'backendsQuery.data' and 'backendsQuery.isSuccess'. Either include them or remove the dependency array                                             react-hooks/exhaustive-deps
+
+/app/apps/web/app/[locale]/layout.tsx
+  79:9  error  Synchronous scripts should not be used. See: https://nextjs.org/docs/messages/no-sync-scripts  @next/next/no-sync-scripts
+
+/app/apps/web/components/common/client-only.tsx
+  21:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/common/client-only.tsx:21:5
+  19 |
+  20 |   useEffect(() => {
+> 21 |     setIsMounted(true);
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  22 |   }, []);
+  23 |
+  24 |   if (!isMounted) {  react-hooks/set-state-in-effect
+
+/app/apps/web/components/common/favicon.tsx
+   6:43  warning  'FaviconProvider' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  63:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/common/favicon.tsx:63:5
+  61 |   // Reset error state when provider changes
+  62 |   useEffect(() => {
+> 63 |     setError(false);
+     |     ^^^^^^^^ Avoid calling setState() directly within an effect
+  64 |     setLoading(true);
+  65 |   }, [settings.faviconProvider, domain]);
+  66 |  react-hooks/set-state-in-effect
+  98:7   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @next/next/no-img-element
+
+/app/apps/web/components/common/sw-register.tsx
+  5:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/components/common/theme-toggle.tsx
+  15:11  warning  'theme' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/components/common/time-range-picker.tsx
+  219:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/common/time-range-picker.tsx:219:5
+  217 |   useEffect(() => {
+  218 |     if (open && selectedPreset === "custom") return;
+> 219 |     syncDraftFromValue();
+      |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  220 |   }, [value, open, selectedPreset]);
+  221 |
+  222 |   useEffect(() => {  react-hooks/set-state-in-effect
+  220:6   warning  React Hook useEffect has a missing dependency: 'syncDraftFromValue'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  238:6   warning  React Hook useMemo has an unnecessary dependency: 'localeCode'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+  281:10  warning  'lockIcon' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  281:20  warning  'setLockIcon' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+
+/app/apps/web/components/common/top-list-item.tsx
+  115:3  warning  'color' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/components/features/auth/login-dialog.tsx
+  13:3   warning  'DialogDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  14:3   warning  'DialogHeader' is defined but never used       @typescript-eslint/no-unused-vars
+  63:14  warning  'err' is defined but never used                @typescript-eslint/no-unused-vars
+
+/app/apps/web/components/features/backend/backend-config-dialog.tsx
+   109:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   134:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   167:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   192:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   688:10  warning  'clearBackendDataDialogOpen' is assigned a value but never used                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   848:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   873:9   warning  'handleUpdateRetention' is assigned a value but never used                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   883:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   913:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   933:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   991:23  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1020:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1056:23  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1096:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1121:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1139:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1150:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1157:9   warning  'openClearBackendDataDialog' is assigned a value but never used                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  1163:9   warning  'handleClearBackendData' is assigned a value but never used                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  1173:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1205:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1227:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1336:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1358:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1385:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1669:31  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/app/apps/web/components/features/backend/backend-verify-animation.tsx
+   5:20  warning  'Shield' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   5:28  warning  'Server' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  29:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/backend/backend-verify-animation.tsx:29:7
+  27 |   useEffect(() => {
+  28 |     if (!show) {
+> 29 |       setDisplayPhase("pending");
+     |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |       return;
+  31 |     }
+  32 |  react-hooks/set-state-in-effect
+
+/app/apps/web/components/features/countries/country-traffic-chart.tsx
+   55:47  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+  114:34  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/countries/country-traffic-chart.tsx:114:34
+  112 |                 ))}
+  113 |               </Pie>
+> 114 |               <Tooltip content={<CustomTooltip />} />
+      |                                  ^^^^^^^^^^^^^ This component is created during render
+  115 |             </PieChart>
+  116 |           </ResponsiveContainer>
+  117 |         </div>
+
+/app/apps/web/components/features/countries/country-traffic-chart.tsx:55:25
+  53 |   }, [chartData]);
+  54 |
+> 55 |   const CustomTooltip = ({ active, payload }: any) => {
+     |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 56 |     if (active && payload && payload.length) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 57 |       const item = payload[0].payload;
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 85 |     return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 86 |   };
+     | ^^^^ The component is created during render here
+  87 |
+  88 |   return (
+  89 |     <Card>  react-hooks/static-components
+
+/app/apps/web/components/features/countries/world-traffic-map.tsx
+   90:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/apps/web/components/features/devices/interactive-device-stats.tsx
+   42:3   warning  'DomainStats' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   43:3   warning  'IPStats' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   56:38  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  127:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/devices/interactive-device-stats.tsx:127:7
+  125 |   useEffect(() => {
+  126 |     if (chartData.length === 0) {
+> 127 |       setSelectedDevice(null);
+      |       ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  128 |       return;
+  129 |     }
+  130 |     const exists =  react-hooks/set-state-in-effect
+  193:9   warning  The 'deviceDomains' logical expression could make the dependencies of useMemo Hook (at line 232) change on every render. To fix this, wrap the initialization of 'deviceDomains' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+
+/app/apps/web/components/features/domains/domain-top-grid.tsx
+  91:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/app/apps/web/components/features/domains/domain-top-list.tsx
+  118:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/app/apps/web/components/features/health/backend-health-chart.tsx
+  558:32  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/health/backend-health-chart.tsx:558:32
+  556 |               domain={hasLatency ? [0, latencyDomainMax ?? "auto"] : [0, 1.2]}
+  557 |             />
+> 558 |             <Tooltip content={<CustomTooltip />} />
+      |                                ^^^^^^^^^^^^^ This component is created during render
+  559 |
+  560 |             {/* Primary curve: latency when available, otherwise online fallback */}
+  561 |             <Area
+
+/app/apps/web/components/features/health/backend-health-chart.tsx:325:5
+  323 |   // ── Tooltip ────────────────────────────────────────────────────────────────
+  324 |   const CustomTooltip = React.useCallback(
+> 325 |     ({ active, payload }: TooltipProps<number, string>) => {
+      |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 326 |       if (!active || !payload?.length) return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 327 |       const slot = payload[0].payload as Slot;
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 386 |       );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 387 |     },
+      | ^^^^^^ The component is created during render here
+  388 |     [gatewayStrokeColor, serverStrokeColor, t, spanMs],
+  389 |   );
+  390 |  react-hooks/static-components
+
+/app/apps/web/components/features/proxies/interactive-proxy-stats.tsx
+   63:38  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  116:9   warning  The 'proxyData' logical expression could make the dependencies of useMemo Hook (at line 149) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'proxyData' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  157:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/proxies/interactive-proxy-stats.tsx:157:7
+  155 |   useEffect(() => {
+  156 |     if (chartData.length === 0) {
+> 157 |       setSelectedProxy(null);
+      |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  158 |       return;
+  159 |     }
+  160 |     const exists = !!selectedProxy && chartData.some((item) => item.rawName === selectedProxy);  react-hooks/set-state-in-effect
+
+/app/apps/web/components/features/proxies/proxy-stats-chart.tsx
+   61:47  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  116:34  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/proxies/proxy-stats-chart.tsx:116:34
+  114 |                 ))}
+  115 |               </Pie>
+> 116 |               <Tooltip content={<CustomTooltip />} />
+      |                                  ^^^^^^^^^^^^^ This component is created during render
+  117 |             </PieChart>
+  118 |           </ResponsiveContainer>
+  119 |         </div>
+
+/app/apps/web/components/features/proxies/proxy-stats-chart.tsx:61:25
+  59 |   }, [chartData]);
+  60 |
+> 61 |   const CustomTooltip = ({ active, payload }: any) => {
+     |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 62 |     if (active && payload && payload.length) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 63 |       const item = payload[0].payload;
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 88 |     return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 89 |   };
+     | ^^^^ The component is created during render here
+  90 |
+  91 |   return (
+  92 |     <Card>  react-hooks/static-components
+
+/app/apps/web/components/features/rules/interactive-rule-stats.tsx
+    3:61  warning  'startTransition' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   11:10  warning  'Button' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   15:10  warning  'api' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   15:20  warning  'GatewayRulesResponse' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   78:38  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  139:9   warning  The 'rulesData' logical expression could make the dependencies of useMemo Hook (at line 226) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'rulesData' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/exhaustive-deps
+  150:9   warning  'topDomainsItemCount' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  296:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/rules/interactive-rule-stats.tsx:296:7
+  294 |   useEffect(() => {
+  295 |     if (chartData.length === 0) {
+> 296 |       setSelectedRule(null);
+      |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  297 |       return;
+  298 |     }
+  299 |     const exists = !!selectedRule && chartData.some((item) => item.rawName === selectedRule);  react-hooks/set-state-in-effect
+
+/app/apps/web/components/features/rules/rule-chain-flow.tsx
+   101:9  warning  'showAll' is assigned a value but never used                                                                           @typescript-eslint/no-unused-vars
+   839:6  warning  React Hook useEffect has a missing dependency: 'selectedRule'. Either include it or remove the dependency array        react-hooks/exhaustive-deps
+  1139:6  warning  React Hook useMemo has an unnecessary dependency: 'activeBackendId'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/apps/web/components/features/stats/charts/proxy-chart.tsx
+   76:38  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  170:18  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/proxy-chart.tsx:170:18
+  168 |     // After first data load, mark as rendered so subsequent updates skip animation
+  169 |     if (result.length > 0) {
+> 170 |       setTimeout(() => {
+      |                  ^^^^^^^
+> 171 |         hasRenderedRef.current = true;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 172 |       }, 800);
+      | ^^^^^^^^ Passing a ref to a function may read its value during render
+  173 |     }
+  174 |     return result;
+  175 |   }, [domains]);                                                                                  react-hooks/refs
+  177:47  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  289:36  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/proxy-chart.tsx:289:36
+  287 |                 radius={[0, 0, 0, 0]}
+  288 |                 maxBarSize={config.barSize}
+> 289 |                 isAnimationActive={!hasRenderedRef.current}
+      |                                    ^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  290 |                 animationDuration={600}>
+  291 |                 {chartData.map((entry, index) => (
+  292 |                   <Cell                                                                                                                               react-hooks/refs
+  289:37  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/proxy-chart.tsx:289:37
+  287 |                 radius={[0, 0, 0, 0]}
+  288 |                 maxBarSize={config.barSize}
+> 289 |                 isAnimationActive={!hasRenderedRef.current}
+      |                                     ^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  290 |                 animationDuration={600}>
+  291 |                 {chartData.map((entry, index) => (
+  292 |                   <Cell
+
+To initialize a ref only once, check that the ref is null with the pattern `if (ref.current == null) { ref.current = ... }`  react-hooks/refs
+  303:36  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/proxy-chart.tsx:303:36
+  301 |                 radius={[0, 4, 4, 0]}
+  302 |                 maxBarSize={config.barSize}
+> 303 |                 isAnimationActive={!hasRenderedRef.current}
+      |                                    ^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  304 |                 animationDuration={600}>
+  305 |                 {chartData.map((entry, index) => (
+  306 |                   <Cell                                                                                                                               react-hooks/refs
+  303:37  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/proxy-chart.tsx:303:37
+  301 |                 radius={[0, 4, 4, 0]}
+  302 |                 maxBarSize={config.barSize}
+> 303 |                 isAnimationActive={!hasRenderedRef.current}
+      |                                     ^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  304 |                 animationDuration={600}>
+  305 |                 {chartData.map((entry, index) => (
+  306 |                   <Cell
+
+To initialize a ref only once, check that the ref is null with the pattern `if (ref.current == null) { ref.current = ... }`  react-hooks/refs
+
+/app/apps/web/components/features/stats/charts/traffic-chart.tsx
+  22:9  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/components/features/stats/charts/trend-chart.tsx
+   49:7   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/trend-chart.tsx:49:7
+  47 |     const hasEverReceivedData = useRef(false);
+  48 |     if (data.length > 0) {
+> 49 |       hasEverReceivedData.current = true;
+     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot update ref during render
+  50 |     }
+  51 |
+  52 |     const selectorOptions = useMemo(() => {                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/refs
+  116:29  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  177:51  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/trend-chart.tsx:177:51
+  175 |     // Loading skeleton - show when loading or on initial load with no data yet
+  176 |     // This prevents flickering from empty state to skeleton on first load
+> 177 |     if ((isLoading && chartData.length === 0) || (chartData.length === 0 && !hasEverReceivedData.current)) {
+      |                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  178 |       return (
+  179 |         <Card className="h-full">
+  180 |           <CardHeader className="pb-2">                                                                                                                               react-hooks/refs
+  177:77  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/trend-chart.tsx:177:77
+  175 |     // Loading skeleton - show when loading or on initial load with no data yet
+  176 |     // This prevents flickering from empty state to skeleton on first load
+> 177 |     if ((isLoading && chartData.length === 0) || (chartData.length === 0 && !hasEverReceivedData.current)) {
+      |                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  178 |       return (
+  179 |         <Card className="h-full">
+  180 |           <CardHeader className="pb-2">                                                                                                                               react-hooks/refs
+  177:78  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/trend-chart.tsx:177:78
+  175 |     // Loading skeleton - show when loading or on initial load with no data yet
+  176 |     // This prevents flickering from empty state to skeleton on first load
+> 177 |     if ((isLoading && chartData.length === 0) || (chartData.length === 0 && !hasEverReceivedData.current)) {
+      |                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  178 |       return (
+  179 |         <Card className="h-full">
+  180 |           <CardHeader className="pb-2">
+
+To initialize a ref only once, check that the ref is null with the pattern `if (ref.current == null) { ref.current = ... }`  react-hooks/refs
+  213:49  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/app/apps/web/components/features/stats/charts/trend-chart.tsx:213:49
+  211 |     // If no data and we've previously received data, show empty state
+  212 |     // Otherwise (initial load with no data), keep showing skeleton to avoid flickering
+> 213 |     if (!isLoading && chartData.length === 0 && hasEverReceivedData.current) {
+      |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  214 |       return (
+  215 |         <Card className="h-full">
+  216 |           <CardHeader className="pb-2">                                                                                                                                                                                      react-hooks/refs
+
+/app/apps/web/components/features/stats/stats-cards.tsx
+  166:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:166:12
+  164 |     return (
+  165 |       <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+> 166 |           <PlaceholderStatCard icon={Download} label={t("totalDownload")} color="#3B82F6" shimmer />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  167 |           <PlaceholderStatCard icon={Upload} label={t("totalUpload")} color="#8B5CF6" shimmer />
+  168 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" shimmer />
+  169 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" shimmer />
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                            react-hooks/static-components
+  167:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:167:12
+  165 |       <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+  166 |           <PlaceholderStatCard icon={Download} label={t("totalDownload")} color="#3B82F6" shimmer />
+> 167 |           <PlaceholderStatCard icon={Upload} label={t("totalUpload")} color="#8B5CF6" shimmer />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  168 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" shimmer />
+  169 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" shimmer />
+  170 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" shimmer />
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (             react-hooks/static-components
+  168:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:168:12
+  166 |           <PlaceholderStatCard icon={Download} label={t("totalDownload")} color="#3B82F6" shimmer />
+  167 |           <PlaceholderStatCard icon={Upload} label={t("totalUpload")} color="#8B5CF6" shimmer />
+> 168 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" shimmer />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  169 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" shimmer />
+  170 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" shimmer />
+  171 |           <PlaceholderStatCard icon={Route} label={t("rules")} color="#F59E0B" shimmer />
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (  react-hooks/static-components
+  169:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:169:12
+  167 |           <PlaceholderStatCard icon={Upload} label={t("totalUpload")} color="#8B5CF6" shimmer />
+  168 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" shimmer />
+> 169 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" shimmer />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  170 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" shimmer />
+  171 |           <PlaceholderStatCard icon={Route} label={t("rules")} color="#F59E0B" shimmer />
+  172 |       </div>
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                          react-hooks/static-components
+  170:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:170:12
+  168 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" shimmer />
+  169 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" shimmer />
+> 170 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" shimmer />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  171 |           <PlaceholderStatCard icon={Route} label={t("rules")} color="#F59E0B" shimmer />
+  172 |       </div>
+  173 |     );
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                                                                                                                    react-hooks/static-components
+  171:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:171:12
+  169 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" shimmer />
+  170 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" shimmer />
+> 171 |           <PlaceholderStatCard icon={Route} label={t("rules")} color="#F59E0B" shimmer />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  172 |       </div>
+  173 |     );
+  174 |   }
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                                                                                                                                                                                                           react-hooks/static-components
+  180:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:180:12
+  178 |       {showUnavailablePlaceholder ? (
+  179 |         <>
+> 180 |           <PlaceholderStatCard icon={Download} label={t("totalDownload")} color="#3B82F6" />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  181 |           <PlaceholderStatCard icon={Upload} label={t("totalUpload")} color="#8B5CF6" />
+  182 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" />
+  183 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" />
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                                                                                                       react-hooks/static-components
+  181:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:181:12
+  179 |         <>
+  180 |           <PlaceholderStatCard icon={Download} label={t("totalDownload")} color="#3B82F6" />
+> 181 |           <PlaceholderStatCard icon={Upload} label={t("totalUpload")} color="#8B5CF6" />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  182 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" />
+  183 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" />
+  184 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" />
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                                                         react-hooks/static-components
+  182:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:182:12
+  180 |           <PlaceholderStatCard icon={Download} label={t("totalDownload")} color="#3B82F6" />
+  181 |           <PlaceholderStatCard icon={Upload} label={t("totalUpload")} color="#8B5CF6" />
+> 182 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  183 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" />
+  184 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" />
+  185 |           <PlaceholderStatCard icon={Route} label={t("rules")} color="#F59E0B" />
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                  react-hooks/static-components
+  183:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:183:12
+  181 |           <PlaceholderStatCard icon={Upload} label={t("totalUpload")} color="#8B5CF6" />
+  182 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" />
+> 183 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  184 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" />
+  185 |           <PlaceholderStatCard icon={Route} label={t("rules")} color="#F59E0B" />
+  186 |         </>
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                                                                   react-hooks/static-components
+  184:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:184:12
+  182 |           <PlaceholderStatCard icon={Server} label={t("total")} color="#EC4899" />
+  183 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" />
+> 184 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  185 |           <PlaceholderStatCard icon={Route} label={t("rules")} color="#F59E0B" />
+  186 |         </>
+  187 |       ) : (
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                                                                                                                                                react-hooks/static-components
+  185:12  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/stats-cards.tsx:185:12
+  183 |           <PlaceholderStatCard icon={Activity} label={t("totalConnections")} color="#10B981" />
+  184 |           <PlaceholderStatCard icon={Globe} label={t("domains")} color="#06B6D4" />
+> 185 |           <PlaceholderStatCard icon={Route} label={t("rules")} color="#F59E0B" />
+      |            ^^^^^^^^^^^^^^^^^^^ This component is created during render
+  186 |         </>
+  187 |       ) : (
+  188 |         <>
+
+/app/apps/web/components/features/stats/stats-cards.tsx:124:31
+  122 |   const showUnavailablePlaceholder = backendStatus === "unhealthy" && summaryIsZero;
+  123 |
+> 124 |   const PlaceholderStatCard = ({
+      |                               ^^
+> 125 |     icon: Icon,
+      | ^^^^^^^^^^^^^^^
+> 126 |     label,
+      …
+      | ^^^^^^^^^^^^^^^
+> 160 |     </div>
+      | ^^^^^^^^^^^^^^^
+> 161 |   );
+      | ^^^^ The component is created during render here
+  162 |
+  163 |   if (isLoading) {
+  164 |     return (                                                                                                                                                                                                                                                                                        react-hooks/static-components
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx
+  142:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:142:5
+  140 |   useEffect(() => {
+  141 |     // Context switch (backend/device/proxy/rule binding change): collapse.
+> 142 |     setExpandedDomain(null);
+      |     ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  143 |     setMobileDetailsOpen(false);
+  144 |     setMobileDetailDomain(null);
+  145 |   }, [activeBackendId, sourceIP, sourceChain, richExpand, ruleName, contextKey]);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/set-state-in-effect
+  149:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:149:7
+  147 |   useEffect(() => {
+  148 |     if (!isRemoteMode) {
+> 149 |       setInternalPage(1);
+      |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  150 |       setInternalSearch("");
+  151 |       setInternalSortKey("totalDownload");
+  152 |       setInternalSortOrder("desc");                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/set-state-in-effect
+  158:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:158:7
+  156 |   useEffect(() => {
+  157 |     if (!isRemoteMode) {
+> 158 |       setInternalPage(1);
+      |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  159 |     }
+  160 |   }, [pageSize, isRemoteMode]);
+  161 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/set-state-in-effect
+  395:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:395:18
+  393 |               >
+  394 |                 {t("domain")}
+> 395 |                 <SortIcon column="domain" />
+      |                  ^^^^^^^^ This component is created during render
+  396 |               </div>
+  397 |               {showProxyColumn && (
+  398 |                 <div className="col-span-2 flex items-center">{t("proxy")}</div>
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:302:20
+  300 |   };
+  301 |
+> 302 |   const SortIcon = ({ column }: { column: DomainSortKey }) => {
+      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 303 |     if (sortKey !== column) {
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 304 |       return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 305 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 306 |     return sortOrder === "asc" ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 307 |       <ArrowUp className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 308 |     ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 309 |       <ArrowDown className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 310 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 311 |   };
+      | ^^^^ The component is created during render here
+  312 |
+  313 |   const filteredDomains = useMemo(() => {
+  314 |     if (isRemoteMode) {                                 react-hooks/static-components
+  405:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:405:18
+  403 |               >
+  404 |                 {t("download")}
+> 405 |                 <SortIcon column="totalDownload" />
+      |                  ^^^^^^^^ This component is created during render
+  406 |               </div>
+  407 |               <div
+  408 |                 className={cn(
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:302:20
+  300 |   };
+  301 |
+> 302 |   const SortIcon = ({ column }: { column: DomainSortKey }) => {
+      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 303 |     if (sortKey !== column) {
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 304 |       return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 305 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 306 |     return sortOrder === "asc" ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 307 |       <ArrowUp className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 308 |     ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 309 |       <ArrowDown className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 310 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 311 |   };
+      | ^^^^ The component is created during render here
+  312 |
+  313 |   const filteredDomains = useMemo(() => {
+  314 |     if (isRemoteMode) {                                                                                           react-hooks/static-components
+  415:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:415:18
+  413 |               >
+  414 |                 {t("upload")}
+> 415 |                 <SortIcon column="totalUpload" />
+      |                  ^^^^^^^^ This component is created during render
+  416 |               </div>
+  417 |               <div
+  418 |                 className="col-span-1 flex items-center justify-end cursor-pointer hover:text-foreground transition-colors"
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:302:20
+  300 |   };
+  301 |
+> 302 |   const SortIcon = ({ column }: { column: DomainSortKey }) => {
+      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 303 |     if (sortKey !== column) {
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 304 |       return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 305 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 306 |     return sortOrder === "asc" ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 307 |       <ArrowUp className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 308 |     ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 309 |       <ArrowDown className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 310 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 311 |   };
+      | ^^^^ The component is created during render here
+  312 |
+  313 |   const filteredDomains = useMemo(() => {
+  314 |     if (isRemoteMode) {  react-hooks/static-components
+  422:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:422:18
+  420 |               >
+  421 |                 {t("conn")}
+> 422 |                 <SortIcon column="totalConnections" />
+      |                  ^^^^^^^^ This component is created during render
+  423 |               </div>
+  424 |               {showLastSeenColumn && (
+  425 |                 <div className="col-span-1 flex items-center justify-end">
+
+/app/apps/web/components/features/stats/table/domain-stats-table.tsx:302:20
+  300 |   };
+  301 |
+> 302 |   const SortIcon = ({ column }: { column: DomainSortKey }) => {
+      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 303 |     if (sortKey !== column) {
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 304 |       return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 305 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 306 |     return sortOrder === "asc" ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 307 |       <ArrowUp className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 308 |     ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 309 |       <ArrowDown className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 310 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 311 |   };
+      | ^^^^ The component is created during render here
+  312 |
+  313 |   const filteredDomains = useMemo(() => {
+  314 |     if (isRemoteMode) {                            react-hooks/static-components
+
+/app/apps/web/components/features/stats/table/expanded-details.tsx
+  188:3  warning  'connLabel' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx
+  135:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:135:5
+  133 |   useEffect(() => {
+  134 |     // Context switch (backend/device/proxy/rule binding change): collapse.
+> 135 |     setExpandedIP(null);
+      |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  136 |     setMobileDetailsOpen(false);
+  137 |     setMobileDetailIP(null);
+  138 |   }, [activeBackendId, sourceIP, sourceChain, richExpand, ruleName, contextKey]);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/set-state-in-effect
+  142:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:142:7
+  140 |   useEffect(() => {
+  141 |     if (!isRemoteMode) {
+> 142 |       setInternalPage(1);
+      |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  143 |       setInternalSearch("");
+  144 |       setInternalSortKey("totalDownload");
+  145 |       setInternalSortOrder("desc");                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/set-state-in-effect
+  151:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:151:7
+  149 |   useEffect(() => {
+  150 |     if (!isRemoteMode) {
+> 151 |       setInternalPage(1);
+      |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  152 |     }
+  153 |   }, [pageSize, isRemoteMode]);
+  154 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/set-state-in-effect
+  375:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:375:18
+  373 |               >
+  374 |                 {t("ip")}
+> 375 |                 <SortIcon column="ip" />
+      |                  ^^^^^^^^ This component is created during render
+  376 |               </div>
+  377 |               {showProxyColumn && (
+  378 |                 <div className="col-span-2 flex items-center">{t("proxy")}</div>
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:286:20
+  284 |   };
+  285 |
+> 286 |   const SortIcon = ({ column }: { column: IPSortKey }) => {
+      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 287 |     if (sortKey !== column) return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 288 |     return sortOrder === "asc" ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 289 |       <ArrowUp className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 290 |     ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 291 |       <ArrowDown className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 292 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 293 |   };
+      | ^^^^ The component is created during render here
+  294 |
+  295 |   const filteredIPs = useMemo(() => {
+  296 |     if (isRemoteMode) {                                             react-hooks/static-components
+  386:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:386:18
+  384 |               >
+  385 |                 {t("download")}
+> 386 |                 <SortIcon column="totalDownload" />
+      |                  ^^^^^^^^ This component is created during render
+  387 |               </div>
+  388 |               <div
+  389 |                 className="col-span-1 flex items-center justify-end cursor-pointer hover:text-foreground transition-colors"
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:286:20
+  284 |   };
+  285 |
+> 286 |   const SortIcon = ({ column }: { column: IPSortKey }) => {
+      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 287 |     if (sortKey !== column) return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 288 |     return sortOrder === "asc" ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 289 |       <ArrowUp className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 290 |     ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 291 |       <ArrowDown className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 292 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 293 |   };
+      | ^^^^ The component is created during render here
+  294 |
+  295 |   const filteredIPs = useMemo(() => {
+  296 |     if (isRemoteMode) {  react-hooks/static-components
+  393:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:393:18
+  391 |               >
+  392 |                 {t("upload")}
+> 393 |                 <SortIcon column="totalUpload" />
+      |                  ^^^^^^^^ This component is created during render
+  394 |               </div>
+  395 |               <div
+  396 |                 className="col-span-1 flex items-center justify-end cursor-pointer hover:text-foreground transition-colors"
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:286:20
+  284 |   };
+  285 |
+> 286 |   const SortIcon = ({ column }: { column: IPSortKey }) => {
+      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 287 |     if (sortKey !== column) return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 288 |     return sortOrder === "asc" ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 289 |       <ArrowUp className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 290 |     ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 291 |       <ArrowDown className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 292 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 293 |   };
+      | ^^^^ The component is created during render here
+  294 |
+  295 |   const filteredIPs = useMemo(() => {
+  296 |     if (isRemoteMode) {      react-hooks/static-components
+  400:18  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:400:18
+  398 |               >
+  399 |                 {t("conn")}
+> 400 |                 <SortIcon column="totalConnections" />
+      |                  ^^^^^^^^ This component is created during render
+  401 |               </div>
+  402 |               <div className={cn(domainCountColumnClass, "flex items-center justify-end")}>
+  403 |                 {t("domainCount")}
+
+/app/apps/web/components/features/stats/table/ip-stats-table.tsx:286:20
+  284 |   };
+  285 |
+> 286 |   const SortIcon = ({ column }: { column: IPSortKey }) => {
+      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 287 |     if (sortKey !== column) return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 288 |     return sortOrder === "asc" ? (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 289 |       <ArrowUp className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 290 |     ) : (
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 291 |       <ArrowDown className="ml-1 h-3 w-3 text-primary" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 292 |     );
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 293 |   };
+      | ^^^^ The component is created during render here
+  294 |
+  295 |   const filteredIPs = useMemo(() => {
+  296 |     if (isRemoteMode) {                   react-hooks/static-components
+
+/app/apps/web/components/overview/index.tsx
+    3:53  warning  'useRef' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  142:40  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/app/apps/web/components/overview/index.tsx:142:40
+  140 |
+  141 |   const isLatestWindow = useMemo(
+> 142 |     () => parsedRange.end.getTime() >= Date.now() - REALTIME_END_TOLERANCE_MS,
+      |                                        ^^^^^^^^^^ Cannot call impure function
+  143 |     [parsedRange.end],
+  144 |   );
+  145 |                                                                                                                                                         react-hooks/purity
+  197:44  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/app/apps/web/components/overview/index.tsx:197:44
+  195 |     const bucketMinutes = granularity === "day" ? 24 * 60 : getMinuteBucket(durationMs);
+  196 |     const minutes = Math.max(1, Math.ceil(durationMs / 60000));
+> 197 |     const realtime = queryEnd.getTime() >= Date.now() - REALTIME_END_TOLERANCE_MS;
+      |                                            ^^^^^^^^^^ Cannot call impure function
+  198 |
+  199 |     return {
+  200 |       start: queryStart.toISOString(),  react-hooks/purity
+
+/app/apps/web/components/overview/top-domains-simple.tsx
+  140:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/app/apps/web/hooks/api/use-gateway.ts
+  5:10  warning  'QUERY_CONFIG' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/hooks/api/use-traffic-trend.ts
+  13:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/apps/web/hooks/use-pwa-install.ts
+  23:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/hooks/use-pwa-install.ts:23:7
+  21 |
+  22 |     if (isStandalone) {
+> 23 |       setIsInstalled(true);
+     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |       return;
+  25 |     }
+  26 |  react-hooks/set-state-in-effect
+
+/app/apps/web/i18n/request.ts
+  7:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/apps/web/lib/auth-queries.ts
+   4:10  warning  'useCallback' is defined but never used   @typescript-eslint/no-unused-vars
+  45:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:55  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/apps/web/lib/auth.tsx
+  12:10  warning  'authKeys' is defined but never used              @typescript-eslint/no-unused-vars
+  32:9   warning  'queryClient' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/app/apps/web/lib/hooks/use-is-windows.ts
+  10:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/apps/web/lib/hooks/use-is-windows.ts:10:5
+   8 |   useEffect(() => {
+   9 |     const userAgent = window.navigator.userAgent.toLowerCase();
+> 10 |     setIsWindows(userAgent.includes("windows"));
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  11 |   }, []);
+  12 |
+  13 |   return isWindows;  react-hooks/set-state-in-effect
+
+/app/apps/web/lib/hooks/use-stable-time-range.ts
+  13:41  error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `timeRange.start`, but the source dependencies were [timeRange?.start, timeRange?.end, options?.roundToMinute]. Inferred different dependency than source.
+
+/app/apps/web/lib/hooks/use-stable-time-range.ts:13:41
+  11 |   options?: { roundToMinute?: boolean },
+  12 | ): TimeRange | undefined {
+> 13 |   return useMemo<TimeRange | undefined>(() => {
+     |                                         ^^^^^^^
+> 14 |     if (!timeRange?.start && !timeRange?.end) return undefined;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 15 |     const start = new Date(timeRange.start);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 16 |     const end = new Date(timeRange.end);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 17 |     if (options?.roundToMinute) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 18 |       start.setUTCSeconds(0, 0);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 19 |       end.setUTCSeconds(0, 0);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 20 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 21 |     return { start: start.toISOString(), end: end.toISOString() };
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 22 |   }, [timeRange?.start, timeRange?.end, options?.roundToMinute]);
+     | ^^^^ Could not preserve existing manual memoization
+  23 | }
+  24 |  react-hooks/preserve-manual-memoization
+  13:41  error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `timeRange.end`, but the source dependencies were [timeRange?.start, timeRange?.end, options?.roundToMinute]. Inferred different dependency than source.
+
+/app/apps/web/lib/hooks/use-stable-time-range.ts:13:41
+  11 |   options?: { roundToMinute?: boolean },
+  12 | ): TimeRange | undefined {
+> 13 |   return useMemo<TimeRange | undefined>(() => {
+     |                                         ^^^^^^^
+> 14 |     if (!timeRange?.start && !timeRange?.end) return undefined;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 15 |     const start = new Date(timeRange.start);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 16 |     const end = new Date(timeRange.end);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 17 |     if (options?.roundToMinute) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 18 |       start.setUTCSeconds(0, 0);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 19 |       end.setUTCSeconds(0, 0);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 20 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 21 |     return { start: start.toISOString(), end: end.toISOString() };
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 22 |   }, [timeRange?.start, timeRange?.end, options?.roundToMinute]);
+     | ^^^^ Could not preserve existing manual memoization
+  23 | }
+  24 |    react-hooks/preserve-manual-memoization
+
+/app/apps/web/lib/websocket.ts
+  102:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  367:13  error    Error: Cannot access variable before it is declared
+
+`connect` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/app/apps/web/lib/websocket.ts:367:13
+  365 |           wsUrlIndexRef.current += 1;
+  366 |           reconnectTimerRef.current = setTimeout(() => {
+> 367 |             connect();
+      |             ^^^^^^^ `connect` accessed before it is declared
+  368 |           }, 200);
+  369 |           return;
+  370 |         }
+
+/app/apps/web/lib/websocket.ts:278:3
+  276 |   }, []);
+  277 |
+> 278 |   const connect = useCallback(() => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 279 |     if (
+      | ^^^^^^^^
+> 280 |       wsRef.current?.readyState === WebSocket.OPEN ||
+      …
+      | ^^^^^^^^
+> 392 |     }
+      | ^^^^^^^^
+> 393 |   }, []);
+      | ^^^^^^^^^^ `connect` is declared here
+  394 |
+  395 |   // Send subscribe message when backend/time-range changes or WS becomes connected.
+  396 |   useEffect(() => {  react-hooks/immutability
+  439:6   warning  React Hook useEffect has a missing dependency: 'normalizedSummaryFields'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+
+/app/apps/web/next.config.ts
+  76:5   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-var-requires')
+  77:21  error    A `require()` style import is forbidden                                                                @typescript-eslint/no-require-imports
+
+/app/apps/web/types/modules.d.ts
+  24:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 151 problems (93 errors, 58 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+
+/app/apps/web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @neko-master/web@1.0.1 lint: `eslint`
+Exit status 1

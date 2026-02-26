@@ -659,6 +659,9 @@ export const api = {
   updateProxyConfig: (subscriptionUrl: string, userRules?: string) =>
     fetchJson<{ success: boolean }>(`${API_BASE}/proxy/config`, 'POST', { subscriptionUrl, userRules }),
 
+  setTunMode: (enable: boolean) =>
+    fetchJson<{ success: boolean }>(`${API_BASE}/proxy/tun`, 'POST', { enable }),
+
   getProxyLogs: (lines?: number) =>
     fetchJson<{ logs: string[] }>(buildUrl(`${API_BASE}/proxy/logs`, { lines })),
 };

@@ -35,4 +35,10 @@ export async function proxyManagerController(fastify: FastifyInstance) {
     const lines = parseInt(query.lines || '100', 10);
     return { logs: service.getLogs(lines) };
   });
+
+  fastify.post('/tun', async (request) => {
+    const { enable } = request.body as { enable: boolean };
+    await service.setTunMode(enable);
+    return { success: true };
+  });
 }
